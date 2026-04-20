@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Food Menu</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <header><h1>Food Junction 🍔</h1></header>
+
+    <div id="home-page" class="container">
+        <div class="menu-card">
+            <div class="info-area">
+                <h3>Pizza 🍕</h3>
+                <select id="pizza-size"><option value="Small">Small (600)</option><option value="Medium">Medium (1000)</option></select>
+            </div>
+            <div class="action-area">
+                <input type="number" id="qty-pizza" value="1" min="1">
+                <button onclick="addPizza()">Add to Cart</button>
+            </div>
+        </div>
+
+        <div class="menu-card">
+            <div class="info-area"><h3>Zinger Burger 🍔</h3><p>350 PKR</p></div>
+            <div class="action-area">
+                <input type="number" id="qty-burger" value="1" min="1">
+                <button onclick="addBurger()">Add to Cart</button>
+            </div>
+        </div>
+
+        <div class="menu-card">
+            <div class="info-area">
+                <h3>Chicken Strips 🍗</h3>
+                <select id="strips-size"><option value="6pcs">6 Pcs (400)</option><option value="12pcs">12 Pcs (750)</option></select>
+            </div>
+            <div class="action-area">
+                <input type="number" id="qty-strips" value="1" min="1">
+                <button onclick="addStrips()">Add to Cart</button>
+            </div>
+        </div>
+
+        <button id="view-cart-btn" onclick="showCart()">View Cart (0)</button>
+    </div>
+
+    <div id="cart-page" style="display:none;" class="container">
+        <header><button onclick="hideCart()" class="back-btn">←</button><h1>Checkout</h1></header>
+        <div id="cart-list" class="cart-items-list"></div>
+        <div id="cart-total" class="total-box">Total: 0 PKR</div>
+        <div class="checkout-form">
+            <input type="text" id="cust-name" placeholder="Name" class="input-field">
+            <input type="text" id="cust-address" placeholder="Address" class="input-field">
+            <input type="tel" id="cust-phone" placeholder="Phone" class="input-field">
+            <button onclick="sendWhatsApp()" class="checkout-btn">Confirm & Send Order</button>
+        </div>
+    </div>
+
+    <script>
+        let cart = [];
+        const prices = { "Pizza": {"Small": 600, "Medium": 1000}, "Burger": 350, "Strips": {"6pcs": 400, "12pcs": 750} };
+
+        function addPizza() { addToCart("Pizza " + document.getElementById('pizza-size').value, prices.Pizza[document.getElementById('pizza-size').value], parseInt(document.getElementById('qty-pizza').value)); }
+        function addBurger() { addToCart("Zinger Burger", prices.Burger, parseInt(document.getElementById('qty-burger').value)); }
+        function addStrips() { addToCart("Strips " + document.getElementById('strips-size').value, prices.Strips[document.getElementById('strips-size').value], parseInt(document.getElementById('qty-strips').value)); }
+
+        function addToCart(name, price, qty) {
+            let item = cart.find(i => i.name === name);
+            if(item) item.qty += qty; else cart.push({name, price, qty});
+            updateViewCartButton();
+        }
+
+        function updateViewCartButton() {
+            let count = cart.reduce((s, i) => s + i.qty, 0);
+            let btn = document.getElementById('view-cart-btn');
+            btn.innerText = `View Cart (${count})`;
+            btn.style.display = count > 0 ? 'block' : 'none';
+        }
+
+        function showCart() { document.getElementById('home-page').style.display='none'; document.getElementById('cart-page').style.display='block'; renderCart(); }
+        function hideCart() { document.getElementById('home-page').style.display='block'; document.getElementById('cart-page').style.display='none'; }
+
+        function renderCart() {
+            let list = document.getElementById('cart-list');
+            let total = 0; list.innerHTML = "";
+            cart.forEach((item, index) => {
+                total += (item.price * item.qty);
+                list.innerHTML += `<div class="cart-row"><span>${item.name} (${item.qty}x)</span> <span>${item.price * item.qty} PKR</span></div>`;
+            });
+            document.getElementById('cart-total').innerText = "Total: " + total + " PKR";
+        }
+
+        function sendWhatsApp() {
+            let name = document.getElementById('cust-name').value;
+            let address = document.getElementById('cust-address').value;
+            let phone = document.getElementById('cust-phone').value;
+            
+            // Cart items ko aapke format mein change kiya
+            let orderItems = cart.map(i => `${i.name}: ${i.qty}`).join('\n');
+            
+            // Total bill ko format se nikalne ke liye
+            let rawTotal = document.getElementById('cart-total').innerText.replace('Total: ', '');
+
+            if(name==""||address==""||phone==""){
+                alert("Please saari details fill karein!"); 
+                return;
+            }
+
+            let msg = `*Naya Order Received!*\n\n` + 
+                      `*Customer Details:*\n` +
+                      `Name: ${name}\n` +
+                      `Phone: ${phone}\n` +
+                      `Address: ${address}\n\n` +
+                      `*Order List:*\n${orderItems}\n\n` +
+                      `*Total Bill: ${rawTotal}*`;
+            
+            window.open("https://wa.me/923336953714?text=" + encodeURIComponent(msg), '_blank');
+        }
+    </script>
+</body>
+</html>
